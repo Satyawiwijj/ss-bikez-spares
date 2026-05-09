@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  {% if obj %}<span class="badge bg-secondary me-2">{{ obj.invoice_no }}</span>{% endif %}
+  <button form="main-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+  <a href="{% url 'spares:invoice_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header">Invoice Details</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-5"><label class="form-label fw-semibold">Supplier *</label>{{ form.supplier }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">From PO</label>{{ form.purchase_order }}</div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Status</label>{{ form.status }}</div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Date *</label>{{ form.date }}</div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Due Date</label>{{ form.due_date }}</div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Supplier GSTIN</label>{{ form.supplier_gstin }}</div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Place of Supply</label>{{ form.place_of_supply }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">ITC Classification</label>{{ form.itc_classification }}</div>
+            <div class="col-md-8 d-flex gap-3 align-items-end">
+              <div class="form-check">{{ form.is_reverse_charge }} <label class="form-check-label">Reverse Charge</label></div>
+              <div class="form-check">{{ form.hold_invoice }} <label class="form-check-label">Hold Invoice</label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header">Items</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0">
+              <thead><tr><th>Item</th><th>Warehouse</th><th>Rack</th><th>Bin</th><th>Qty</th><th>Rate</th><th>SGST%</th><th>CGST%</th><th>Total</th><th></th></tr></thead>
+              <tbody id="formset-body">
+                {% for f in formset %}
+                <tr>
+                  {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                  <td>{{ f.item }}</td><td>{{ f.warehouse }}</td><td>{{ f.rack }}</td><td>{{ f.bin }}</td>
+                  <td>{{ f.quantity }}</td><td>{{ f.rate }}</td><td>{{ f.sgst }}</td><td>{{ f.cgst }}</td>
+                  <td class="total-cell">—</td>
+                  <td>{{ f.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3"><button type="button" class="add-row-btn" id="add-row"><i class="fas fa-plus me-1"></i> Add Item</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Transporter Info</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label fw-semibold">Transporter</label>{{ form.transporter }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Mode</label>{{ form.mode_of_transport }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Vehicle No</label>{{ form.vehicle_no }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Driver</label>{{ form.driver }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Receipt No</label>{{ form.transport_receipt_no }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Receipt Date</label>{{ form.transport_receipt_date }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Distance (km)</label>{{ form.distance_km }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">GST Transporter ID</label>{{ form.gst_transporter_id }}</div>
+            <div class="col-12"><label class="form-label fw-semibold">Remarks</label>{{ form.remarks }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      {% if obj %}
+      <div class="card">
+        <div class="card-header">Totals</div>
+        <div class="card-body">
+          <div class="summary-box">
+            <div class="summary-row"><span>Subtotal</span><span>₹{{ obj.total_amount }}</span></div>
+            <div class="summary-row"><span>SGST</span><span>₹{{ obj.total_sgst }}</span></div>
+            <div class="summary-row"><span>CGST</span><span>₹{{ obj.total_cgst }}</span></div>
+            <div class="summary-row total"><span>Grand Total</span><span>₹{{ obj.grand_total }}</span></div>
+          </div>
+          <div class="mt-3 text-center">
+            <span class="badge badge-{{ obj.payment_status|lower }} fs-6">{{ obj.payment_status }}</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<div id="empty-form" style="display:none">
+  <table><tbody><tr>
+    {% for h in formset.empty_form.hidden_fields %}{{ h }}{% endfor %}
+    <td>{{ formset.empty_form.item }}</td><td>{{ formset.empty_form.warehouse }}</td>
+    <td>{{ formset.empty_form.rack }}</td><td>{{ formset.empty_form.bin }}</td>
+    <td>{{ formset.empty_form.quantity }}</td><td>{{ formset.empty_form.rate }}</td>
+    <td>{{ formset.empty_form.sgst }}</td><td>{{ formset.empty_form.cgst }}</td>
+    <td>—</td>
+    <td>{{ formset.empty_form.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+  </tr></tbody></table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let idx = {{ formset.total_form_count }};
+$('#add-row').on('click', function() {
+  const html = $('#empty-form tbody').html().replace(/__prefix__/g, idx++);
+  $('#formset-body').append(html);
+  $('#id_form-TOTAL_FORMS').val(idx);
+});
+$(document).on('click', '.delete-row', function() {
+  const row = $(this).closest('tr');
+  const chk = row.find('input[type=checkbox][name$=DELETE]');
+  if (chk.length) { chk.prop('checked', true); row.hide(); } else row.remove();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  <button form="main-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+  <a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ item_formset.management_form }}
+  {{ deleted_formset.management_form }}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header">Issue Alteration Details</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label fw-semibold">Job Card *</label>{{ form.job_card }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Godown *</label>{{ form.godown }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Job Type *</label>{{ form.job_type }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Date *</label>{{ form.date }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Discount</label>{{ form.discount }}</div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="form-check">{{ form.individual_discount }} <label class="form-check-label">Individual Discount</label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header">Spare Items</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0">
+              <thead><tr><th>Item</th><th>Qty</th><th>Rack</th><th>Bin</th><th>Rate</th><th>Discount%</th><th>Total</th><th></th></tr></thead>
+              <tbody id="items-body">
+                {% for f in item_formset %}
+                <tr>{% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                  <td>{{ f.item }}</td><td>{{ f.quantity }}</td><td>{{ f.rack }}</td><td>{{ f.bin }}</td>
+                  <td>{{ f.rate }}</td><td>{{ f.discount_percent }}</td><td>—</td>
+                  <td>{{ f.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3"><button type="button" class="add-row-btn" id="add-item-row"><i class="fas fa-plus me-1"></i> Add Item</button></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Deleted Spares List</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0">
+              <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Tool Status</th><th>Rack</th><th>Bin</th><th>Ref No</th><th></th></tr></thead>
+              <tbody id="deleted-body">
+                {% for f in deleted_formset %}
+                <tr>{% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                  <td>{{ f.date }}</td><td>{{ f.item }}</td><td>{{ f.quantity }}</td>
+                  <td>{{ f.tool_status }}</td><td>{{ f.rack }}</td><td>{{ f.bin }}</td><td>{{ f.ref_no }}</td>
+                  <td>{{ f.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3"><button type="button" class="add-row-btn" id="add-deleted-row"><i class="fas fa-plus me-1"></i> Add Row</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      {% if obj %}
+      <div class="card">
+        <div class="card-header">Totals</div>
+        <div class="card-body">
+          <div class="summary-box">
+            <div class="summary-row"><span>Spares Total</span><span>₹{{ obj.spares_total }}</span></div>
+            <div class="summary-row"><span>Labour Total</span><span>₹{{ obj.labour_total }}</span></div>
+            <div class="summary-row"><span>Outwork Total</span><span>₹{{ obj.outwork_total }}</span></div>
+            <div class="summary-row"><span>Discount</span><span>₹{{ obj.discount }}</span></div>
+            <div class="summary-row total"><span>Updated Total</span><span>₹{{ obj.updated_total }}</span></div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<div id="empty-item-form" style="display:none">
+  <table><tbody><tr>{% for h in item_formset.empty_form.hidden_fields %}{{ h }}{% endfor %}
+    <td>{{ item_formset.empty_form.item }}</td><td>{{ item_formset.empty_form.quantity }}</td>
+    <td>{{ item_formset.empty_form.rack }}</td><td>{{ item_formset.empty_form.bin }}</td>
+    <td>{{ item_formset.empty_form.rate }}</td><td>{{ item_formset.empty_form.discount_percent }}</td><td>—</td>
+    <td>{{ item_formset.empty_form.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+  </tr></tbody></table>
+</div>
+<div id="empty-deleted-form" style="display:none">
+  <table><tbody><tr>{% for h in deleted_formset.empty_form.hidden_fields %}{{ h }}{% endfor %}
+    <td>{{ deleted_formset.empty_form.date }}</td><td>{{ deleted_formset.empty_form.item }}</td>
+    <td>{{ deleted_formset.empty_form.quantity }}</td><td>{{ deleted_formset.empty_form.tool_status }}</td>
+    <td>{{ deleted_formset.empty_form.rack }}</td><td>{{ deleted_formset.empty_form.bin }}</td><td>{{ deleted_formset.empty_form.ref_no }}</td>
+    <td>{{ deleted_formset.empty_form.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+  </tr></tbody></table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let itemIdx = {{ item_formset.total_form_count }};
+let deletedIdx = {{ deleted_formset.total_form_count }};
+
+$('#add-item-row').on('click', function() {
+  const html = $('#empty-item-form tbody').html().replace(/__prefix__/g, itemIdx++);
+  $('#items-body').append(html);
+  $('#id_items-TOTAL_FORMS').val(itemIdx);
+});
+$('#add-deleted-row').on('click', function() {
+  const html = $('#empty-deleted-form tbody').html().replace(/__prefix__/g, deletedIdx++);
+  $('#deleted-body').append(html);
+  $('#id_deleted-TOTAL_FORMS').val(deletedIdx);
+});
+$(document).on('click', '.delete-row', function() {
+  const row = $(this).closest('tr');
+  const chk = row.find('input[type=checkbox][name$=DELETE]');
+  if (chk.length) { chk.prop('checked', true); row.hide(); } else row.remove();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Purchase Invoices{% endblock %}
+{% block page_title %}Purchase Invoices{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'spares:invoice_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i> New Invoice</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <form method="get" class="d-flex gap-2">
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search invoice no, supplier...">
+      <select name="status" class="form-select form-select-sm" style="width:130px">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <select name="payment" class="form-select form-select-sm" style="width:130px">
+        <option value="">All Payment</option>
+        <option value="Unpaid" {% if payment == 'Unpaid' %}selected{% endif %}>Unpaid</option>
+        <option value="Paid" {% if payment == 'Paid' %}selected{% endif %}>Paid</option>
+      </select>
+      <button class="btn btn-sm btn-primary">Search</button>
+      <a href="{% url 'spares:invoice_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Invoice No</th><th>Supplier</th><th>Date</th><th>Grand Total</th><th>Payment</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr onclick="window.location='{% url 'spares:invoice_detail' inv.pk %}'" style="cursor:pointer">
+          <td><strong>{{ inv.invoice_no }}</strong></td>
+          <td>{{ inv.supplier.supplier_name }}</td>
+          <td>{{ inv.date }}</td>
+          <td>₹{{ inv.grand_total }}</td>
+          <td><span class="badge badge-{{ inv.payment_status|lower }}">{{ inv.payment_status }}</span></td>
+          <td><span class="badge badge-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-5">No invoices found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

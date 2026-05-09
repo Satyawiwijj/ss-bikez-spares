@@ -1,0 +1,17 @@
+<tr>
+  {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+  <td>{{ item_form.item }}</td>
+  <td>{{ item_form.rack }}</td>
+  <td>{{ item_form.bin }}</td>
+  <td>{{ item_form.quantity }}</td>
+  <td>{{ item_form.rate }}</td>
+  <td><input type="text" class="form-control gst-input" value="{{ item_form.instance.gst_percent|default:'18' }}"></td>
+  <td><span class="amount-display">0.00</span></td>
+  <td><span class="total-display">0.00</span></td>
+  <td>
+    <button type="button" class="delete-row btn btn-sm btn-link text-danger p-0">
+      <i class="fas fa-times"></i>
+    </button>
+    {{ item_form.DELETE }}
+  </td>
+</tr>

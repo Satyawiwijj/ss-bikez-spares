@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  {% if not is_readonly %}
+  <button form="main-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+  {% endif %}
+  <a href="{% url 'spares:counter_return_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back</a>
+{% endblock %}
+
+{% block content %}
+{% if is_readonly %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3"><strong>Return No:</strong> {{ obj.return_no }}</div>
+      <div class="col-md-3"><strong>Original Sale:</strong> {{ obj.original_sale.sale_no }}</div>
+      <div class="col-md-3"><strong>Date:</strong> {{ obj.return_date }}</div>
+      <div class="col-md-3"><strong>Total:</strong> ₹{{ obj.total_amount }}</div>
+    </div>
+    <div class="row g-3 mt-1">
+      <div class="col-md-3"><strong>Stock Return:</strong> {% if obj.stock_return_done %}Yes{% else %}No{% endif %}</div>
+      <div class="col-md-3"><strong>Refund Done:</strong> {% if obj.amount_refund_done %}Yes{% else %}No{% endif %}</div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header">Items</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+      <tbody>
+        {% for i in obj.items.all %}
+        <tr><td>{{ i.item.item_name }}</td><td>{{ i.quantity }}</td><td>₹{{ i.rate }}</td><td>₹{{ i.amount }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header">Return Details</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-5"><label class="form-label fw-semibold">Original Sale *</label>{{ form.original_sale }}</div>
+            <div class="col-md-4"><label class="form-label fw-semibold">Return Date *</label>{{ form.return_date }}</div>
+            <div class="col-md-3 d-flex gap-3 align-items-end">
+              <div class="form-check">{{ form.stock_return_done }} <label class="form-check-label">Stock Returned</label></div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-check">{{ form.amount_refund_done }} <label class="form-check-label">Refund Done</label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Items</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0">
+              <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="formset-body">
+                {% for f in formset %}
+                <tr>
+                  {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+                  <td>{{ f.item }}</td><td>{{ f.quantity }}</td><td>{{ f.rate }}</td><td class="amount-cell">—</td>
+                  <td>{{ f.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3"><button type="button" class="add-row-btn" id="add-row"><i class="fas fa-plus me-1"></i> Add Item</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+<div id="empty-form" style="display:none">
+  <table><tbody><tr>
+    {% for h in formset.empty_form.hidden_fields %}{{ h }}{% endfor %}
+    <td>{{ formset.empty_form.item }}</td><td>{{ formset.empty_form.quantity }}</td><td>{{ formset.empty_form.rate }}</td><td>—</td>
+    <td>{{ formset.empty_form.DELETE }}<button type="button" class="delete-row btn btn-sm btn-link text-danger p-0"><i class="fas fa-times"></i></button></td>
+  </tr></tbody></table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not is_readonly %}
+<script>
+let idx = {{ formset.total_form_count }};
+$('#add-row').on('click', function() {
+  const html = $('#empty-form tbody').html().replace(/__prefix__/g, idx++);
+  $('#formset-body').append(html);
+  $('#id_form-TOTAL_FORMS').val(idx);
+});
+$(document).on('click', '.delete-row', function() {
+  const row = $(this).closest('tr');
+  const chk = row.find('input[type=checkbox][name$=DELETE]');
+  if (chk.length) { chk.prop('checked', true); row.hide(); } else row.remove();
+});
+</script>
+{% endif %}
+{% endblock %}

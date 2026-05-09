@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  <button form="main-form" class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i> Save
+  </button>
+  <a href="{% url 'spares:item_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
+  </a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+
+      <!-- Core Details -->
+      <div class="card mb-3">
+        <div class="card-header">Item Details</div>
+        <div class="card-body">
+          {% if obj %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Item Code</label>
+            <input type="text" class="form-control" value="{{ obj.item_code }}" readonly>
+          </div>
+          {% endif %}
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Item Name <span class="text-danger">*</span></label>
+              {{ form.item_name }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Category</label>
+              {{ form.category }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">HSN/SAC <span class="text-danger">*</span></label>
+              {{ form.hsn_sac }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">UOM <span class="text-danger">*</span></label>
+              {{ form.uom }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Part Number</label>
+              {{ form.part_number }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Brand</label>
+              {{ form.brand }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Item Sub Group</label>
+              {{ form.item_sub_group }}
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              {{ form.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="card mb-3">
+        <div class="card-header">Pricing & Tax</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">MRP</label>
+              {{ form.mrp }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Selling Rate</label>
+              {{ form.standard_selling_rate }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Valuation Rate</label>
+              {{ form.valuation_rate }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Max Discount %</label>
+              {{ form.max_discount }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">SGST %</label>
+              {{ form.sgst }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">CGST %</label>
+              {{ form.cgst }}
+            </div>
+            <div class="col-md-6">
+              <div class="form-check mt-3">
+                {{ form.is_ineligible_for_itc }}
+                <label class="form-check-label">Ineligible for Input Tax Credit</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory -->
+      <div class="card mb-3">
+        <div class="card-header">Inventory Settings</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Opening Stock</label>
+              {{ form.opening_stock }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Reorder Level</label>
+              {{ form.reorder_level }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Reorder Qty</label>
+              {{ form.reorder_qty }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Warranty (days)</label>
+              {{ form.warranty_period_days }}
+            </div>
+            <div class="col-md-8 d-flex gap-4 align-items-center pt-3">
+              <div class="form-check">
+                {{ form.maintain_stock }}
+                <label class="form-check-label">Maintain Stock</label>
+              </div>
+              <div class="form-check">
+                {{ form.allow_negative_stock }}
+                <label class="form-check-label">Allow Negative Stock</label>
+              </div>
+              <div class="form-check">
+                {{ form.is_active }}
+                <label class="form-check-label">Active</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rack/Bin Assignment -->
+      <div class="card mb-3">
+        <div class="card-header">Rack & Bin Details</div>
+        <div class="card-body">
+          {% for rb_form in formset %}
+            <div class="formset-row">
+              {{ rb_form.id }}
+              <div class="row g-2">
+                <div class="col-md-5">
+                  <label class="form-label small">Rack</label>
+                  {{ rb_form.rack }}
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label small">Bin</label>
+                  {{ rb_form.bin }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                  <div class="form-check">
+                    {{ rb_form.DELETE }}
+                    <label class="form-check-label text-danger small">Remove</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Stock Info -->
+    <div class="col-lg-4">
+      {% if obj and stock %}
+      <div class="card mb-3">
+        <div class="card-header">Current Stock</div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr><th>Warehouse</th><th>Rack</th><th>Qty</th></tr>
+            </thead>
+            <tbody>
+              {% for s in stock %}
+              <tr>
+                <td>{{ s.warehouse.name }}</td>
+                <td>{{ s.rack.name|default:"—" }}</td>
+                <td><strong>{{ s.quantity }}</strong></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted">No stock</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if obj %}
+      <div class="card">
+        <div class="card-header">Record Info</div>
+        <div class="card-body small text-muted">
+          <div>Code: <strong>{{ obj.item_code }}</strong></div>
+          <div>Created: {{ obj.created_at|date:"d M Y" }}</div>
+          <div>Updated: {{ obj.updated_at|date:"d M Y H:i" }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}

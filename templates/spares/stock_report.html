@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Stock Report{% endblock %}
+{% block page_title %}Stock Report{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <form method="get" class="d-flex gap-2 flex-wrap">
+      <input type="text" name="item" value="{{ item_q }}" class="form-control form-control-sm" style="width:250px" placeholder="Search item code or name...">
+      <select name="warehouse" class="form-select form-select-sm" style="width:200px">
+        <option value="">All Warehouses</option>
+        {% for w in warehouses %}<option value="{{ w.pk }}" {% if warehouse_id == w.pk|stringformat:"s" %}selected{% endif %}>{{ w.name }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary">Filter</button>
+      <a href="{% url 'spares:stock_report' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Item Code</th><th>Item Name</th><th>Warehouse</th><th>Rack</th><th>Bin</th><th>Quantity</th><th>UOM</th></tr></thead>
+      <tbody>
+        {% for s in stock %}
+        <tr>
+          <td><strong>{{ s.item.item_code }}</strong></td>
+          <td>{{ s.item.item_name }}</td>
+          <td>{{ s.warehouse.name }}</td>
+          <td>{{ s.rack.name|default:"—" }}</td>
+          <td>{{ s.bin.name|default:"—" }}</td>
+          <td><strong {% if s.quantity <= s.item.reorder_level %}class="text-danger"{% endif %}>{{ s.quantity }}</strong></td>
+          <td>{{ s.item.uom }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-5">No stock records found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

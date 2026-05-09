@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  <button form="main-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+  <a href="{% url 'spares:warehouse_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">Warehouse Details</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Warehouse Name <span class="text-danger">*</span></label>
+          {{ form.name }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Type</label>
+          {{ form.warehouse_type }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Parent Warehouse</label>
+          {{ form.parent_warehouse }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Phone</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Mobile</label>
+          {{ form.mobile }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Address Line 1</label>
+          {{ form.address_line1 }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Address Line 2</label>
+          {{ form.address_line2 }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">City</label>
+          {{ form.city }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">State</label>
+          {{ form.state }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">PIN</label>
+          {{ form.pin }}
+        </div>
+        <div class="col-12 d-flex gap-4">
+          <div class="form-check">{{ form.is_group }} <label class="form-check-label">Is Group Warehouse</label></div>
+          <div class="form-check">{{ form.is_rejected }} <label class="form-check-label">Is Rejected Warehouse</label></div>
+          <div class="form-check">{{ form.is_active }} <label class="form-check-label">Active</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

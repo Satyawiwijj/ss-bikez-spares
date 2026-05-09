@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — SS Bikez Spares{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+  {% if obj %}
+    <span class="badge bg-secondary me-2">{{ obj.sale_no }}</span>
+    {% if not is_readonly %}
+      <button form="main-form" class="btn btn-sm btn-primary">
+        <i class="fas fa-save me-1"></i> Save
+      </button>
+    {% endif %}
+    <a href="{% url 'spares:counter_return_create' %}?sale_id={{ obj.pk }}" class="btn btn-sm btn-outline-warning">
+      <i class="fas fa-undo me-1"></i> Create Return
+    </a>
+  {% else %}
+    <button form="main-form" class="btn btn-sm btn-primary">
+      <i class="fas fa-save me-1"></i> Save
+    </button>
+  {% endif %}
+  <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
+  </a>
+{% endblock %}
+
+{% block content %}
+{% if is_readonly %}
+<div class="alert alert-info mb-3">
+  <i class="fas fa-lock me-2"></i> This sale has been submitted and cannot be edited.
+</div>
+{% endif %}
+
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+
+  <div class="row g-3">
+    <!-- Left: Main Form -->
+    <div class="col-lg-8">
+
+      <!-- Header Fields -->
+      <div class="card mb-3">
+        <div class="card-header">Sale Details</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
+              {{ form.type }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+              {{ form.date }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Godown <span class="text-danger">*</span></label>
+              {{ form.godown }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">GST Category</label>
+              {{ form.gst_category }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
+              {{ form.customer }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Mobile <span class="text-danger">*</span></label>
+              {{ form.mobile }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Pay Type</label>
+              {{ form.pay_type }}
+            </div>
+            <div class="col-md-4">
+              <div class="form-check mt-3">
+                {{ form.spot_sale }} <label class="form-check-label">Spot Sale (No Order)</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-check mt-3">
+                {{ form.is_warranty }} <label class="form-check-label">Is Warranty</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="card mb-3">
+        <div class="card-header">Counter Sale Items</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0" id="items-table">
+              <thead>
+                <tr>
+                  <th style="width:30%">Item</th>
+                  <th>Rack</th>
+                  <th>Bin</th>
+                  <th style="width:80px">Qty</th>
+                  <th style="width:100px">Rate</th>
+                  <th style="width:60px">GST%</th>
+                  <th style="width:100px">Amount</th>
+                  <th style="width:100px">Total</th>
+                  <th style="width:30px"></th>
+                </tr>
+              </thead>
+              <tbody id="formset-body">
+                {% for item_form in formset %}
+                  {% include 'spares/_counter_sale_item_row.html' with item_form=item_form %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if not is_readonly %}
+          <div class="p-3">
+            <button type="button" class="add-row-btn" id="add-row">
+              <i class="fas fa-plus me-1"></i> Add Item
+            </button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Summary -->
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header">Payment Summary</div>
+        <div class="card-body">
+          <div class="summary-box">
+            <div class="summary-row">
+              <span>Total Qty</span>
+              <span id="summary-qty">0</span>
+            </div>
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>₹<span id="summary-subtotal">0.00</span></span>
+            </div>
+            <div class="summary-row">
+              <span>Discount</span>
+              <span>₹<span id="summary-discount">0.00</span></span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span>₹<span id="summary-total">0.00</span></span>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label fw-semibold">Discount %</label>
+            {{ form.discount }}
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold">Advance Amount</label>
+            {{ form.advance_amount }}
+          </div>
+          <div class="mt-2">
+            <label class="form-label fw-semibold">Pending Amount</label>
+            <input type="text" class="form-control" id="pending-display" readonly>
+          </div>
+        </div>
+      </div>
+
+      {% if obj %}
+      <div class="card">
+        <div class="card-header">Record Info</div>
+        <div class="card-body small text-muted">
+          <div>Sale No: <strong>{{ obj.sale_no }}</strong></div>
+          <div>Status: <strong>{{ obj.get_status_display }}</strong></div>
+          <div>Payment: <strong>{{ obj.payment_status }}</strong></div>
+          <div>Created: {{ obj.created_at|date:"d M Y H:i" }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+<!-- Hidden empty form for JS cloning -->
+<div id="empty-form" style="display:none">
+  <table><tbody>
+    {% with formset.empty_form as item_form %}
+      {% include 'spares/_counter_sale_item_row.html' with item_form=item_form %}
+    {% endwith %}
+  </tbody></table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ITEM_URL = "{% url 'spares:ajax_item_details' 0 %}".replace('/0/', '/');
+const BIN_URL  = "{% url 'spares:ajax_rack_bins' 0 %}".replace('/0/', '/');
+let formIndex = {{ formset.total_form_count }};
+
+// ── Add row ──────────────────────────────────────────────
+$('#add-row').on('click', function() {
+  const emptyHtml = $('#empty-form tbody').html()
+    .replace(/__prefix__/g, formIndex);
+  $('#formset-body').append(emptyHtml);
+  $('#id_form-TOTAL_FORMS').val(++formIndex);
+  bindRow($('#formset-body tr:last'));
+  recalculate();
+});
+
+// ── Delete row ────────────────────────────────────────────
+$(document).on('click', '.delete-row', function() {
+  const row = $(this).closest('tr');
+  const chk = row.find('input[type=checkbox][name$=DELETE]');
+  if (chk.length) { chk.prop('checked', true); row.hide(); }
+  else { row.remove(); }
+  recalculate();
+});
+
+// ── Item selected → fill rate/gst ─────────────────────────
+$(document).on('change', '.item-select', function() {
+  const itemId = $(this).val();
+  const row = $(this).closest('tr');
+  if (!itemId) return;
+  $.getJSON(ITEM_URL + itemId + '/', function(data) {
+    row.find('.rate-input').val(data.rate);
+    row.find('.gst-input').val(parseFloat(data.sgst) + parseFloat(data.cgst));
+    calcRow(row);
+    recalculate();
+  });
+});
+
+// ── Rack selected → load bins ─────────────────────────────
+$(document).on('change', '.rack-select', function() {
+  const rackId = $(this).val();
+  const binSelect = $(this).closest('tr').find('.bin-select');
+  binSelect.empty().append('<option value="">---------</option>');
+  if (!rackId) return;
+  $.getJSON(BIN_URL + rackId + '/', function(data) {
+    data.bins.forEach(b => binSelect.append(`<option value="${b.id}">${b.name}</option>`));
+  });
+});
+
+// ── Live calc per row ─────────────────────────────────────
+$(document).on('input', '.qty-input, .rate-input, .gst-input', function() {
+  calcRow($(this).closest('tr'));
+  recalculate();
+});
+
+function calcRow(row) {
+  const qty  = parseFloat(row.find('.qty-input').val())  || 0;
+  const rate = parseFloat(row.find('.rate-input').val()) || 0;
+  const gst  = parseFloat(row.find('.gst-input').val())  || 0;
+  const amt  = qty * rate;
+  const total = amt + (amt * gst / 100);
+  row.find('.amount-display').text(amt.toFixed(2));
+  row.find('.total-display').text(total.toFixed(2));
+}
+
+// ── Summary totals ────────────────────────────────────────
+function recalculate() {
+  let totalQty = 0, subtotal = 0;
+  $('#formset-body tr:visible').each(function() {
+    const qty = parseFloat($(this).find('.qty-input').val()) || 0;
+    const total = parseFloat($(this).find('.total-display').text()) || 0;
+    totalQty += qty;
+    subtotal += total;
+  });
+  const discPct = parseFloat($('#id_discount').val()) || 0;
+  const discAmt = subtotal * discPct / 100;
+  const grandTotal = subtotal - discAmt;
+  const advance = parseFloat($('#id_advance_amount').val()) || 0;
+  const pending = grandTotal - advance;
+
+  $('#summary-qty').text(totalQty.toFixed(3));
+  $('#summary-subtotal').text(subtotal.toFixed(2));
+  $('#summary-discount').text(discAmt.toFixed(2));
+  $('#summary-total').text(grandTotal.toFixed(2));
+  $('#pending-display').val('₹' + Math.max(pending, 0).toFixed(2));
+}
+
+$('#id_discount, #id_advance_amount').on('input', recalculate);
+
+function bindRow(row) { /* placeholder for future per-row bindings */ }
+
+// Init on load
+$('#formset-body tr').each(function() { calcRow($(this)); });
+recalculate();
+</script>
+{% endblock %}

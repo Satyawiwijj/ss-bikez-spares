@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Sale Returns{% endblock %}
+{% block page_title %}Counter Sale Returns{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'spares:counter_return_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i> New Return</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Return No</th><th>Original Sale</th><th>Return Date</th><th>Total</th><th>Stock Return</th><th>Refund Done</th></tr></thead>
+      <tbody>
+        {% for r in returns %}
+        <tr onclick="window.location='{% url 'spares:counter_return_detail' r.pk %}'" style="cursor:pointer">
+          <td><strong>{{ r.return_no }}</strong></td>
+          <td>{{ r.original_sale.sale_no }}</td>
+          <td>{{ r.return_date }}</td>
+          <td>₹{{ r.total_amount }}</td>
+          <td>{% if r.stock_return_done %}<span class="badge badge-submitted">Done</span>{% else %}<span class="badge badge-unpaid">Pending</span>{% endif %}</td>
+          <td>{% if r.amount_refund_done %}<span class="badge badge-submitted">Done</span>{% else %}<span class="badge badge-unpaid">Pending</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-5">No returns found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

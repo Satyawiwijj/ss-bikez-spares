@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Counter Sales{% endblock %}
+{% block page_title %}Counter Sales{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i> New Sale
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <form method="get" class="d-flex gap-2">
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search sale no, customer, mobile...">
+      <select name="status" class="form-select form-select-sm" style="width:150px">
+        <option value="">All Status</option>
+        {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary">Search</button>
+      <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Sale No</th>
+          <th>Type</th>
+          <th>Customer</th>
+          <th>Mobile</th>
+          <th>Date</th>
+          <th>Total Qty</th>
+          <th>Total Amount</th>
+          <th>Payment</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sale in sales %}
+        <tr onclick="window.location='{% url 'spares:counter_sale_detail' sale.pk %}'" style="cursor:pointer">
+          <td><strong>{{ sale.sale_no }}</strong></td>
+          <td>{{ sale.get_type_display }}</td>
+          <td>{{ sale.customer }}</td>
+          <td>{{ sale.mobile }}</td>
+          <td>{{ sale.date }}</td>
+          <td>{{ sale.total_qty }}</td>
+          <td>₹{{ sale.total_amount }}</td>
+          <td><span class="badge badge-{{ sale.payment_status|lower }}">{{ sale.payment_status }}</span></td>
+          <td><span class="badge badge-{{ sale.status }}">{{ sale.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted py-5">No counter sales found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

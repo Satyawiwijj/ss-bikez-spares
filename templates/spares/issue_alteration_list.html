@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Issue Alterations{% endblock %}
+{% block page_title %}Spares Issue Alterations{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'spares:issue_alteration_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i> New</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <form method="get" class="d-flex gap-2">
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search job card, godown...">
+      <button class="btn btn-sm btn-primary">Search</button>
+      <a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Job Card</th><th>Godown</th><th>Date</th><th>Job Type</th><th>Spares Total</th><th>Updated Total</th></tr></thead>
+      <tbody>
+        {% for i in issues %}
+        <tr onclick="window.location='{% url 'spares:issue_alteration_detail' i.pk %}'" style="cursor:pointer">
+          <td>{{ i.pk }}</td><td><strong>{{ i.job_card }}</strong></td><td>{{ i.godown.name }}</td>
+          <td>{{ i.date }}</td><td>{{ i.get_job_type_display }}</td>
+          <td>₹{{ i.spares_total }}</td><td>₹{{ i.updated_total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-5">No records found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
